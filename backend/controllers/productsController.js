@@ -19,8 +19,6 @@ const createProduct = async (req, res, next) => {
   }
 };
 
-// Pozostałe metody kontrolera...
-
 module.exports = {
   createProduct
 };

@@ -1,17 +1,16 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+const { Sequelize } = require('sequelize');
+const config = require('../config');
 
-const createPool = () => {
-  return mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'fridgi',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-  });
-};
+const sequelize = new Sequelize(config.database, config.user, config.password, {
+  host: config.host,
+  dialect: 'mysql',
+  logging: true,
+  pool: {
+    max: 10,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  }
+});
 
-// Eksportujemy funkcję tworzącą pulę połączeń
-module.exports = createPool;
+module.exports = sequelize;

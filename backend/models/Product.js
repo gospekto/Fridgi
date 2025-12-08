@@ -1,41 +1,24 @@
-class Product {
-  constructor(pool) {
-    this.pool = pool;
-  }
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-  async create(productData) {
-    const [result] = await this.pool.execute(
-      `INSERT INTO products 
-      (name, category, quantity, unit, expiry_date, barcode, barcode_type, 
-       image_path, storage_location, notes, estimated_shelf_life, user_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        productData.name,
-        productData.category,
-        productData.quantity,
-        productData.unit,
-        productData.expiryDate,
-        productData.barcode,
-        productData.barcodeType,
-        productData.imagePath,
-        productData.storageLocation,
-        productData.notes,
-        productData.estimatedShelfLife,
-        productData.userId
-      ]
-    );
-    return { id: result.insertId, ...productData };
-  }
-
-  async findByUserId(userId) {
-    const [rows] = await this.pool.execute(
-      'SELECT * FROM products WHERE user_id = ? ORDER BY expiry_date ASC',
-      [userId]
-    );
-    return rows;
-  }
-
-  // Pozostałe metody...
-}
+const Product = sequelize.define('Product', {
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+  name: { type: DataTypes.STRING(255), allowNull: false },
+  category: { type: DataTypes.STRING(255), allowNull: false },
+  quantity: { type: DataTypes.DECIMAL(10,2), defaultValue: 1 },
+  unit: { type: DataTypes.STRING(50), defaultValue: 'szt' },
+  expiryDate: { type: DataTypes.DATE, allowNull: true },
+  barcode: { type: DataTypes.STRING(100), allowNull: true, unique: true },
+  barcodeType: { type: DataTypes.STRING(50), allowNull: true },
+  imageUri: { type: DataTypes.TEXT, allowNull: true },
+  storageLocation: { type: DataTypes.STRING(100), defaultValue: 'Lodówka' },
+  notes: { type: DataTypes.TEXT, allowNull: true },
+  estimatedShelfLife: { type: DataTypes.INTEGER, allowNull: true },
+  typicalShelfLife: { type: DataTypes.INTEGER, allowNull: true },
+  addedDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, {
+  tableName: 'products',
+  timestamps: false,
+});
 
 module.exports = Product;
