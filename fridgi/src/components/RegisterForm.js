@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text, Snackbar } from 'react-native-paper';
-import { registerUser } from '../services/authServices';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterForm = () => {
   const [email, setEmail] = useState('');
@@ -10,17 +10,18 @@ const RegisterForm = () => {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
+  const { handleRegister } = useAuth();
 
   const showSnackbar = (msg) => setSnackbar({ visible: true, message: msg });
 
-  const handleRegister = async () => {
+  const handleRegisterSubmit = async () => {
     if (password !== repeatPassword)
       return showSnackbar("Hasła nie są takie same!");
 
     try {
       setLoading(true);
 
-      const res = await registerUser({ email, password, name });
+      const res = await handleRegister({ email, password, name });
 
       showSnackbar("Utworzono konto 🎉");
 
@@ -71,7 +72,7 @@ const RegisterForm = () => {
         mode="contained"
         loading={loading}
         disabled={loading}
-        onPress={handleRegister}
+        onPress={handleRegisterSubmit}
       >
         Zarejestruj
       </Button>

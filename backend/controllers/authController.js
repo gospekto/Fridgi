@@ -3,6 +3,7 @@ const User = require('../models/User');
 const UserToken = require('../models/UserToken');
 const { generateAccessToken, generateRefreshToken } = require('../utils/auth');
 const { Op } = require('sequelize');
+const config = require('../config');
 
 module.exports = {
 
@@ -81,7 +82,7 @@ module.exports = {
 
       const jwt = require('jsonwebtoken');
 
-      jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
+      jwt.verify(refreshToken, config.JWT_REFRESH_SECRET, async (err, decoded) => {
         if (err) return res.status(403).json({ message: "Refresh token nieważny" });
 
         const user = await User.findByPk(decoded.id);

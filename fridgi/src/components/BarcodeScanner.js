@@ -1,49 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity, Image, Alert } from 'react-native';
-import { getProductByBarcode, addToFridge, getProductsInFridgeByBarcode, removeFromFridge, addToShoppingList } from '../services/productsServices';
+import { getProductByBarcode, getProductsInFridgeByBarcode, removeFromFridge, addToShoppingList } from '../services/productsServices';
 import { ActivityIndicator, Text, Button, SegmentedButtons, IconButton } from 'react-native-paper';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import CameraScanner from './CameraScanner';
-
-const ModalProduct = ({ visible, product, onClose, onAction, actionType }) => {
-  return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          {product.image && (
-            <Image 
-              source={{ uri: product.image }} 
-              style={styles.productImage}
-              resizeMode="contain"
-            />
-          )}
-          <Text style={styles.productName}>{product.name}</Text>
-          
-          <Button 
-            mode="contained" 
-            onPress={onAction}
-            style={[
-              styles.actionButton,
-              actionType === 'remove' && styles.removeButton
-            ]}
-            labelStyle={styles.actionButtonText}
-          >
-            {actionType === 'add' ? 'Dodaj produkt' : 'Usuń produkt'}
-          </Button>
-          
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelText}>Anuluj</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-};
+import { hasProductReview, addProductReview } 
+  from '../services/productReviewsServices';
+import ProductReviewForm from './ProductReviewForm';
 
 const LoadingOverlay = ({ visible }) => {
   if (!visible) return null;
@@ -64,13 +27,17 @@ export default function BarcodeScanner() {
   const [actionType, setActionType] = useState('add');
   const navigation = useNavigation();
   const isFocused = useIsFocused();
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewProduct, setReviewProduct] = useState(null);
+
 
   const handleBarcodeScanned = async ({ type, data }) => {
     if (scannedBarcode === data || isLoading) return;
     
     setScannedBarcode(data);
     setIsLoading(true);
-    
+
     try {
       if (actionType === 'add') {
         const products = await getProductByBarcode(data);
@@ -83,14 +50,25 @@ export default function BarcodeScanner() {
           return;
         }
 
-        // Zawsze przekierowuj do ProductSelection, nawet gdy jest tylko jeden produkt
         navigation.navigate('ProductSelection', { 
           products,
           barcodeData: data,
           actionType: 'add'
         });
-      } else {
-        // Dla usuwania sprawdzamy produkty w lodówce
+      } else if (actionType === 'check') {
+      const products = await getProductByBarcode(data);
+
+      if (products.length === 0) {
+        Alert.alert('Brak produktu', 'Nie znaleziono produktu o podanym kodzie');
+        return;
+      }
+
+      const product = products[0];
+
+      navigation.navigate('ProductReviewScreen', {
+        product,
+      });
+    } else {
         const productsInFridge = await getProductsInFridgeByBarcode(data);
         
         if (productsInFridge.length === 0) {
@@ -125,6 +103,18 @@ export default function BarcodeScanner() {
               },
             ]
           );
+
+          
+          const products = await getProductByBarcode(data);
+          const product = products[0];
+
+          const alreadyReviewed = await hasProductReview(product.id);
+
+          if (!alreadyReviewed) {
+            setReviewProduct(product);
+            setShowReviewPrompt(true);
+          }
+
         } else {
           navigation.navigate('ProductSelection', {
             products: productsInFridge,
@@ -132,6 +122,7 @@ export default function BarcodeScanner() {
             actionType: 'remove'
           });
         }
+
       }
     } catch (error) {
       console.error('Błąd skanowania:', error);
@@ -140,30 +131,6 @@ export default function BarcodeScanner() {
       setIsLoading(false);
       setScannedBarcode(null);
     }
-  };
-
-  const handleAction = async () => {
-    try {
-      if (actionType === 'add') {
-        await addToFridge({
-          ...selectedProduct,
-          addedDate: new Date().toISOString(),
-          quantity: 1,
-          fridgeId: Date.now().toString()
-        });
-        Alert.alert('Sukces', 'Produkt został dodany do lodówki');
-      }
-      closeModal();
-    } catch (error) {
-      console.error('Błąd:', error);
-      Alert.alert('Błąd', `Wystąpił błąd podczas ${actionType === 'add' ? 'dodawania' : 'usuwania'} produktu`);
-    }
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setScannedBarcode(null);
-    setSelectedProduct(null);
   };
 
   const handleBack = () => {
@@ -197,13 +164,19 @@ export default function BarcodeScanner() {
                   label: 'Dodaj',
                   icon: 'plus',
                   style: actionType === 'add' ? styles.activeSegment : styles.inactiveSegment
+                },               
+                {
+                  value: 'check',
+                  label: 'Sprawdź',
+                  icon: 'minus',
+                  style: actionType === 'check' ? styles.activeSegment : styles.inactiveSegment
                 },
                 {
                   value: 'remove',
                   label: 'Usuń',
                   icon: 'minus',
                   style: actionType === 'remove' ? styles.activeSegment : styles.inactiveSegment
-                },
+                }, 
               ]}
               style={styles.segmentedButtons}
             />
@@ -211,7 +184,50 @@ export default function BarcodeScanner() {
         </>
       )}
       
-      <LoadingOverlay visible={isLoading} />
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" />
+          <Text style={{ marginTop: 12 }}>Przetwarzanie...</Text>
+        </View>
+      )}
+
+      <Modal visible={showReviewPrompt} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text variant="titleMedium">Czy chcesz ocenić produkt?</Text>
+
+            <Button
+              mode="contained"
+              style={{ marginTop: 12 }}
+              onPress={() => {
+                setShowReviewPrompt(false);
+                setShowReviewForm(true);
+              }}
+            >
+              Tak
+            </Button>
+
+            <Button onPress={() => setShowReviewPrompt(false)}>
+              Nie
+            </Button>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showReviewForm} animationType="slide">
+        <ProductReviewForm
+          onCancel={() => setShowReviewForm(false)}
+          onSubmit={async ({ rating, comment }) => {
+            await addProductReview({
+              productId: reviewProduct.id,
+              rating,
+              comment
+            });
+            Alert.alert('Dziękujemy!', 'Recenzja zapisana');
+            setShowReviewForm(false);
+          }}
+        />
+      </Modal>
     </View>
   );
 }

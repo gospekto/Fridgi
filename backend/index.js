@@ -11,8 +11,8 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: ['http://localhost:8081', 'http://ping-serwis.pl'], 
+  credentials: true,
 }));
 
 app.use('/', apiRouter);

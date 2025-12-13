@@ -1,14 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  loginUser,
-  registerUser,
-  refreshAccessToken,
-} from "../services/authServices";
-import axios from "axios";
+import api from "../../axios";
 
 const AuthContext = createContext();
-
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
@@ -17,6 +11,10 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ------------------------------
+  // Helpers
+  // ------------------------------
 
   const saveAuthData = async (data) => {
     try {
@@ -29,8 +27,7 @@ export const AuthProvider = ({ children }) => {
   const loadAuthData = async () => {
     try {
       const json = await AsyncStorage.getItem("authData");
-      if (json) return JSON.parse(json);
-      return null;
+      return json ? JSON.parse(json) : null;
     } catch (err) {
       console.error("Błąd odczytu AsyncStorage", err);
       return null;
@@ -46,26 +43,39 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleLogin = async ({ email, password }) => {
-    const res = await loginUser({ email, password });
+    try {
+      const res = await api.post("/auth/login", { email, password });
 
-    const data = {
-      user: res.user,
-      accessToken: res.accessToken,
-      refreshToken: res.refreshToken,
-    };
+      const data = {
+        user: res.data.user,
+        accessToken: res.data.accessToken,
+        refreshToken: res.data.refreshToken,
+      };
 
-    setUser(res.user);
-    setAccessToken(res.accessToken);
-    setRefreshToken(res.refreshToken);
+      setUser(data.user);
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
 
-    await saveAuthData(data);
+      await saveAuthData(data);
 
-    return res;
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || "Błąd logowania");
+    }
   };
 
   const handleRegister = async ({ email, password, name }) => {
-    const res = await registerUser({ email, password, name });
-    return res;
+    try {
+      const res = await api.post("/auth/register", {
+        email,
+        password,
+        name,
+      });
+
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || "Błąd rejestracji");
+    }
   };
 
   const logout = async () => {
@@ -75,11 +85,9 @@ export const AuthProvider = ({ children }) => {
     await clearAuthData();
   };
 
-  const fetchUserFromBackend = async (token) => {
+  const fetchUserFromBackend = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:3000/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/auth/me");
       return response.data.user;
     } catch (error) {
       return null;
@@ -95,37 +103,15 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    const { accessToken, refreshToken, user } = data;
+    setAccessToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
 
-    // najpierw próbujemy backend
-    const remoteUser = await fetchUserFromBackend(accessToken);
+    const remoteUser = await fetchUserFromBackend();
 
     if (remoteUser) {
-      // token nadal działa
       setUser(remoteUser);
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      setLoading(false);
-      return;
-    }
-
-    // jeśli accessToken wygasł:
-    try {
-      const newTokens = await refreshAccessToken();
-
-      const refreshedData = {
-        user,
-        accessToken: newTokens.accessToken,
-        refreshToken: newTokens.refreshToken,
-      };
-
-      setUser(user);
-      setAccessToken(newTokens.accessToken);
-      setRefreshToken(newTokens.refreshToken);
-      await saveAuthData(refreshedData);
-    } catch (err) {
-      console.log("Token refresh failed");
-      logout();
+    } else {
+      await logout();
     }
 
     setLoading(false);
@@ -143,7 +129,6 @@ export const AuthProvider = ({ children }) => {
     handleLogin,
     handleRegister,
     logout,
-    refreshAccessToken,
   };
 
   return (

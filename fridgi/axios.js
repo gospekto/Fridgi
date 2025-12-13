@@ -1,9 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { refreshAccessToken } from "./authServices";
-import * as SecureStore from "expo-secure-store";
-  
-export const API_BASE_URL = "http://127.0.0.1:3000";
+
+export const API_BASE_URL = "http://backend.ping-serwis.pl/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -20,8 +18,8 @@ api.interceptors.request.use(
           config.headers.Authorization = `Bearer ${accessToken}`;
         }
       }
-    } catch (error) {
-      console.error("Błąd przy pobieraniu tokenu z AsyncStorage", error);
+    } catch (err) {
+      console.error("Błąd pobierania tokenu z AsyncStorage", err);
     }
 
     return config;
@@ -41,15 +39,40 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const doRefreshToken = async () => {
+  const saved = await AsyncStorage.getItem("authData");
+
+  if (!saved) throw new Error("Brak danych auth");
+
+  const { refreshToken, user } = JSON.parse(saved);
+
+  const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+    refreshToken,
+  });
+
+  const newTokens = {
+    accessToken: res.data.accessToken,
+    refreshToken: res.data.refreshToken,
+    user,
+  };
+
+  await AsyncStorage.setItem("authData", JSON.stringify(newTokens));
+
+  return newTokens;
+};
+
 api.interceptors.response.use(
   (response) => response,
+
   async (error) => {
     const originalRequest = error.config;
 
+    // jeśli to nie jest 401 → wyrzucamy błąd normalnie
     if (error.response?.status !== 401) {
       return Promise.reject(error);
     }
 
+    // jeśli refresh w trakcie to czekamy
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
@@ -60,35 +83,20 @@ api.interceptors.response.use(
         })
         .catch((err) => Promise.reject(err));
     }
-    
+
     isRefreshing = true;
 
     try {
-      const refreshData = await refreshAccessToken();
-
-      const newAccessToken = refreshData.accessToken;
-
-      // zapisujemy nowe tokeny
-      await AsyncStorage.setItem(
-        "authData",
-        JSON.stringify({
-          accessToken: refreshData.accessToken,
-          refreshToken: refreshData.refreshToken,
-        })
-      );
+      const newData = await doRefreshToken();
+      const newAccessToken = newData.accessToken;
 
       processQueue(null, newAccessToken);
 
-      // dodajemy nowy token do requestu i wywołujemy ponownie
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
       return api(originalRequest);
     } catch (err) {
       processQueue(err, null);
-
-      // jeśli refreshToken nie działa → wyloguj
       await AsyncStorage.removeItem("authData");
-
       return Promise.reject(err);
     } finally {
       isRefreshing = false;

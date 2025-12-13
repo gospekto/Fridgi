@@ -363,17 +363,17 @@ export default function ProductAdd({ navigation, route }) {
 
             {/* Ilość i jednostka */}
             <View style={styles.row}>
-              <TextInput
+              {/* <TextInput
                 label="Ilość*"
                 value={formData.quantity}
                 onChangeText={(text) => handleChange('quantity', text)}
                 error={!!errors.quantity}
                 style={[styles.input, styles.quantityInput]}
                 keyboardType="numeric"
-              />
+              /> */}
               
               {/* Jednostka - Menu */}
-              <Menu
+              {/* <Menu
                 visible={unitMenuVisible}
                 onDismiss={() => setUnitMenuVisible(false)}
                 anchor={
@@ -397,7 +397,7 @@ export default function ProductAdd({ navigation, route }) {
                     title={unit}
                   />
                 ))}
-              </Menu>
+              </Menu> */}
             </View>
             {errors.quantity && (
               <HelperText type="error" visible={!!errors.quantity}>

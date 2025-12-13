@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text, Snackbar } from 'react-native-paper';
-import { loginUser } from '../services/authServices';
+import { useAuth } from '../context/AuthContext';
 
 const LoginForm = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
+    const { handleLogin } = useAuth();
 
   const showSnackbar = (msg) => setSnackbar({ visible: true, message: msg });
 
-  const handleLogin = async () => {
+  const handleLoginSubmit = async () => {
     try {
       setLoading(true);
 
-      const data = await loginUser({ email, password });
+      const data = await handleLogin({ email, password });
       showSnackbar("Zalogowano pomyślnie");
 
-      navigation.replace("Dashboard");
+      // navigation.replace("Dashboard");
 
     } catch (error) {
       showSnackbar(error.message);
@@ -52,7 +53,7 @@ const LoginForm = ({ navigation }) => {
         mode="contained"
         loading={loading}
         disabled={loading}
-        onPress={handleLogin}
+        onPress={handleLoginSubmit}
         style={styles.button}
       >
         Zaloguj

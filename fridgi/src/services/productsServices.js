@@ -83,57 +83,88 @@ export const deleteProductFromDatabase = async (productId) => {
 };
 
 // Lodówka
+export const getFridgeItemsRaw = async () => {
+  const fridgeJson = await AsyncStorage.getItem(FRIDGE_KEY);
+  return fridgeJson ? JSON.parse(fridgeJson) : [];
+};
+
+
 export const getFridgeItems = async () => {
   try {
-    const fridgeJson = await AsyncStorage.getItem(FRIDGE_KEY);
-    return fridgeJson ? JSON.parse(fridgeJson) : [];
-  } catch (error) {
-    console.error('Error getting fridge items:', error);
+    const fridgeItems = await getFridgeItemsRaw();
+    const productsDb = await getProductDatabase();
+
+    return fridgeItems
+      .map(item => {
+        const product = productsDb.find(p => p.id === item.productId);
+        if (!product) return null;
+
+        return {
+          ...item,
+          product
+        };
+      })
+      .filter(Boolean);
+  } catch (e) {
+    console.error(e);
     return [];
   }
 };
+
 
 export const getProductsFromFridge = async () => {
   return await getFridgeItems();
 };
 
 export const getProductsInFridgeByBarcode = async (barcode) => {
-  try {
-    const allProducts = await getFridgeItems();
-    return allProducts.filter(product => product.barcode === barcode);
-  } catch (error) {
-    console.error('Error getting fridge products by barcode:', error);
-    return [];
-  }
+  const fridgeItems = await getFridgeItems();
+  return fridgeItems.filter(
+    item => item.product.barcode === barcode
+  );
 };
 
 export const getFridgeItem = async (fridgeId) => {
   try {
     const fridgeItems = await getFridgeItems();
-    return fridgeItems.find(item => item.fridgeId === fridgeId);
+    const productsDb = await getProductDatabase();
+
+    const item = fridgeItems.find(i => i.fridgeId === fridgeId);
+    if (!item) return null;
+
+    const product = productsDb.find(p => p.id === item.productId);
+    if (!product) return null;
+
+    return {
+      ...item,
+      product
+    };
   } catch (error) {
     console.error('Error getting fridge item:', error);
     throw error;
   }
 };
-
-export const addToFridge = async (product) => {
+export const addToFridge = async (productId, expirationDate = null) => {
   try {
     const fridgeItems = await getFridgeItems();
-    const productWithFridgeId = {
-      ...product,
-      fridgeId: product.fridgeId || generateId(),
-      addedDate: product.addedDate || new Date().toISOString(),
+
+    const fridgeItem = {
+      fridgeId: generateId(),
+      productId,
+      addedDate: new Date().toISOString(),
+      expirationDate,
       lastUpdated: new Date().toISOString()
     };
-    const updatedFridge = [...fridgeItems, productWithFridgeId];
+
+    const updatedFridge = [...fridgeItems, fridgeItem];
     await AsyncStorage.setItem(FRIDGE_KEY, JSON.stringify(updatedFridge));
-    return productWithFridgeId;
+
+    return fridgeItem;
   } catch (error) {
     console.error('Error adding to fridge:', error);
     throw error;
   }
 };
+
 
 export const updateInFridge = async (fridgeId, updates) => {
   try {
@@ -145,6 +176,7 @@ export const updateInFridge = async (fridgeId, updates) => {
     const updatedItem = {
       ...fridgeItems[index],
       ...updates,
+      lastUpdated: new Date().toISOString(),
       fridgeId
     };
     
