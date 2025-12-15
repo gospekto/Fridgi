@@ -18,9 +18,9 @@ import {
   getFridgeItems,
   deleteFromFridge,
   updateInFridge,
-  getFridgeItem,
-  addToShoppingList
-} from '../services/productsServices';
+  getFridgeItem
+} from '../services/fridgeItemsServices';
+import { addToShoppingList } from '../services/shoppingListServices';
 
 const FridgeScreen = ({ navigation }) => {
   const [fridgeItems, setFridgeItems] = useState([]);
@@ -244,6 +244,10 @@ const FridgeScreen = ({ navigation }) => {
                       <Text style={styles.detailLabel}>Data ważności: </Text>
                       {formatDate(data.expirationDate)}
                     </Text>
+                    <Text variant="bodyMedium">
+                      <Text style={styles.detailLabel}>Data dodania: </Text>
+                      {formatDate(data.addedDate)}
+                    </Text>
                     {data.product.notes ? (
                       <Text variant="bodyMedium">
                         <Text style={styles.detailLabel}>Notatki: </Text>
@@ -280,6 +284,10 @@ const FridgeScreen = ({ navigation }) => {
                       {item.items.map((groupItem) => (
                         <View key={groupItem.fridgeId} style={[styles.groupItem, styles.groupItemBorder]}>
                           <View style={styles.groupItemDetails}>
+                            <Text variant="bodyMedium">
+                              <Text style={styles.detailLabel}>Data dodania: </Text>
+                              {formatDate(groupItem.addedDate)}
+                            </Text>
                             <Text variant="bodyMedium">
                               <Text style={styles.detailLabel}>Data ważności: </Text>
                               {formatDate(groupItem.expirationDate)}

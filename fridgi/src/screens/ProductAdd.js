@@ -21,7 +21,8 @@ import * as FileSystem from 'expo-file-system';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import 'moment/locale/pl';
-import { generateId, addToProductDatabase, addToFridge } from '../services/productsServices';
+import { generateId, addToProductDatabase } from '../services/productServices/productsServices';
+import { addToFridge } from '../services/fridgeItemsServices';
 
 moment.locale('pl');
 
@@ -170,16 +171,16 @@ export default function ProductAdd({ navigation, route }) {
         quality: 0.8,
       });
 
-      console.log('Camera result:', result); // Debugowanie
+      console.log('Camera result:', result);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setFormData(prev => ({
           ...prev,
-          imageUri: result.assets[0].uri // Używamy bezpośrednio URI
+          imageUri: result.assets[0].uri
         }));
       }
     } catch (error) {
-      console.error('Full error:', error); // Pełny błąd do debugowania
+      console.error('Full error:', error);
       showSnackbar(`Błąd podczas robienia zdjęcia: ${error.message}`);
     }
   };

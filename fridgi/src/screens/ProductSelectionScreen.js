@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Modal, FlatList, TouchableOpacity, Image, Alert, KeyboardAvoidingView, Platform} from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { addToFridge, removeFromFridge, addToShoppingList } from '../services/productsServices';
 import { MaterialIcons } from '@expo/vector-icons';
-import { hasProductReview, addProductReview } 
-  from '../services/productReviewsServices';
 import ProductReviewForm from '../components/ProductReviewForm';
+
+import { addToShoppingList } from '../services/shoppingListServices';
+import { addToFridge, removeFromFridge } from '../services/fridgeItemsServices';
+import { hasProductReview, addProductReview } from '../services/productReviewsServices';
 
 const ProductSelection = () => {
   const navigation = useNavigation();
@@ -68,16 +69,10 @@ const ProductSelection = () => {
             text: 'Tak',
             onPress: async () => {
               try {
-                await addToShoppingList({
-                  name: product.name,
-                  quantity: product.quantity,
-                  unit: product.unit,
-                  category: product.category,
-                });
+                await addToShoppingList(product.product.id, product.quantity || 1);
                 Alert.alert('Sukces', 'Dodano do listy zakupów');
 
-                // po dodaniu do zakupów, sprawdzamy opinię
-                const alreadyReviewed = await hasProductReview(product.id);
+                const alreadyReviewed = await hasProductReview(product.product.id);
                 if (!alreadyReviewed) {
                   setReviewProduct(product);
                   setShowReviewPrompt(true);
@@ -150,7 +145,7 @@ const ProductSelection = () => {
       <FlatList
         data={productsWithOptions}
         renderItem={renderProductItem}
-        keyExtractor={(item) => (item.fridgeId || item.id).toString()}
+        keyExtractor={(item) => (item.fridgeId || item.id)?.toString()}
         contentContainerStyle={styles.listContent}
       />
       <Modal visible={showReviewPrompt} transparent animationType="fade">
@@ -195,7 +190,7 @@ const ProductSelection = () => {
           }}
           onSubmit={async ({ rating, comment }) => {
             await addProductReview({
-              productId: reviewProduct.id,
+              productId: reviewProduct.product.id,
               rating,
               comment,
             });

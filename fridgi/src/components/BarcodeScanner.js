@@ -1,23 +1,11 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity, Image, Alert } from 'react-native';
-import { getProductByBarcode, getProductsInFridgeByBarcode, removeFromFridge, addToShoppingList } from '../services/productsServices';
+import { getProductByBarcode} from '../services/productServices/productsServices';
 import { ActivityIndicator, Text, Button, SegmentedButtons, IconButton } from 'react-native-paper';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import CameraScanner from './CameraScanner';
-import { hasProductReview, addProductReview } 
-  from '../services/productReviewsServices';
-import ProductReviewForm from './ProductReviewForm';
 
-const LoadingOverlay = ({ visible }) => {
-  if (!visible) return null;
-  
-  return (
-    <View style={styles.loadingOverlay}>
-      <ActivityIndicator animating={true} size="large" />
-      <Text style={styles.loadingText}>Przetwarzanie...</Text>
-    </View>
-  );
-};
+import { getProductsInFridgeByBarcode } from '../services/fridgeItemsServices';
 
 export default function BarcodeScanner() {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,9 +15,6 @@ export default function BarcodeScanner() {
   const [actionType, setActionType] = useState('add');
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewProduct, setReviewProduct] = useState(null);
 
 
   const handleBarcodeScanned = async ({ type, data }) => {
@@ -75,53 +60,12 @@ export default function BarcodeScanner() {
           Alert.alert('Błąd', 'Nie znaleziono produktu o podanym kodzie w lodówce');
           return;
         }
-
-        if (productsInFridge.length === 1) {
-          const removedItem = productsInFridge[0];
-          await removeFromFridge(removedItem.fridgeId);
-          Alert.alert('Sukces', 'Produkt został usunięty z lodówki');
-          Alert.alert(
-            'Dodaj do zakupów',
-            'Czy chcesz dodać ten produkt do listy zakupów?',
-            [
-              { text: 'Nie', style: 'cancel' },
-              {
-                text: 'Tak',
-                onPress: async () => {
-                  try {
-                    await addToShoppingList({
-                      name: removedItem.name,
-                      quantity: removedItem.quantity,
-                      unit: removedItem.unit,
-                      category: removedItem.category,
-                    });
-                    Alert.alert('Sukces', 'Dodano do listy zakupów');
-                  } catch (error) {
-                    Alert.alert('Błąd', 'Nie udało się dodać do listy zakupów');
-                  }
-                },
-              },
-            ]
-          );
-
-          
-          const products = await getProductByBarcode(data);
-          const product = products[0];
-
-          const alreadyReviewed = await hasProductReview(product.id);
-
-          if (!alreadyReviewed) {
-            setReviewProduct(product);
-            setShowReviewPrompt(true);
-          }
-
-        } else {
-          navigation.navigate('ProductSelection', {
-            products: productsInFridge,
-            barcodeData: data,
-            actionType: 'remove'
-          });
-        }
+    
+        navigation.navigate('ProductSelection', {
+          products: productsInFridge,
+          barcodeData: data,
+          actionType: 'remove'
+        });
 
       }
     } catch (error) {
@@ -191,43 +135,6 @@ export default function BarcodeScanner() {
         </View>
       )}
 
-      <Modal visible={showReviewPrompt} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text variant="titleMedium">Czy chcesz ocenić produkt?</Text>
-
-            <Button
-              mode="contained"
-              style={{ marginTop: 12 }}
-              onPress={() => {
-                setShowReviewPrompt(false);
-                setShowReviewForm(true);
-              }}
-            >
-              Tak
-            </Button>
-
-            <Button onPress={() => setShowReviewPrompt(false)}>
-              Nie
-            </Button>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={showReviewForm} animationType="slide">
-        <ProductReviewForm
-          onCancel={() => setShowReviewForm(false)}
-          onSubmit={async ({ rating, comment }) => {
-            await addProductReview({
-              productId: reviewProduct.id,
-              rating,
-              comment
-            });
-            Alert.alert('Dziękujemy!', 'Recenzja zapisana');
-            setShowReviewForm(false);
-          }}
-        />
-      </Modal>
     </View>
   );
 }

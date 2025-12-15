@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { generateId } from './productsServices';
+import { generateId } from './productServices/productsServices';
 
 const PRODUCT_REVIEWS_KEY = '@productReviews';
 
