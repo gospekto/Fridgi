@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../axios";
+import { pullProductsFromBackend, syncProducts } from "../services/productServices/productSyncService";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -12,9 +13,17 @@ export const AuthProvider = ({ children }) => {
   const [refreshToken, setRefreshToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ------------------------------
-  // Helpers
-  // ------------------------------
+  useEffect(() => {
+    async function initData() {
+      if(user) {
+        console.log("syncing");
+        await syncProducts();
+        // pullProductsFromBackend();
+      }
+    }
+    
+    initData();
+  }, [user]);
 
   const saveAuthData = async (data) => {
     try {

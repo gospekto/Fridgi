@@ -19,8 +19,6 @@ const LoginForm = ({ navigation }) => {
       const data = await handleLogin({ email, password });
       showSnackbar("Zalogowano pomyślnie");
 
-      // navigation.replace("Dashboard");
-
     } catch (error) {
       showSnackbar(error.message);
     } finally {

@@ -67,12 +67,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // jeśli to nie jest 401 → wyrzucamy błąd normalnie
     if (error.response?.status !== 401) {
       return Promise.reject(error);
     }
 
-    // jeśli refresh w trakcie to czekamy
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });

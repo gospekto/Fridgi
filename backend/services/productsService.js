@@ -1,17 +1,45 @@
 const Product = require('../models/Product');
-const pool = require('../config/db');
 
-const productModel = new Product(pool);
-
-const createProduct = async (productData) => {
-  return await productModel.create(productData);
+const getProducts = async () => {
+  return Product.findAll({
+    order: [['name', 'DESC']]
+  });
 };
 
-const getProductsByUser = async (userId) => {
-  return await productModel.findByUserId(userId);
+const createProduct = async (data) => {
+  return Product.create({
+    ...data,
+    userId
+  });
+};
+
+const updateProduct = async (productId, data) => {
+  const product = await Product.findOne({
+    where: { id: productId }
+  });
+
+  if (!product) {
+    throw new Error('Product not found');
+  }
+
+  return product.update(data);
+};
+
+const deleteProduct = async (productId) => {
+  const product = await Product.findOne({
+    where: { id: productId }
+  });
+
+  if (!product) {
+    throw new Error('Product not found');
+  }
+
+  await product.destroy();
 };
 
 module.exports = {
+  getProducts,
   createProduct,
-  getProductsByUser
+  updateProduct,
+  deleteProduct
 };

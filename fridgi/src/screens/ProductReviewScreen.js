@@ -21,7 +21,7 @@ const ProductReviewScreen = ({ route }) => {
   const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [mode, setMode] = useState(null); // 'add' | 'edit'
+  const [mode, setMode] = useState(null);
 
   useEffect(() => {
     const loadReview = async () => {

@@ -5,7 +5,7 @@ const Product = sequelize.define('Product', {
   id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
   name: { type: DataTypes.STRING(255), allowNull: false },
   category: { type: DataTypes.STRING(255), allowNull: false },
-  estimatedShelfLife: { type: DataTypes.INTEGER, allowNull: true },
+  typicalShelfLife: { type: DataTypes.INTEGER, allowNull: true },
   storageLocation: { type: DataTypes.STRING(100), defaultValue: 'Lodówka' },
   unit: { type: DataTypes.STRING(50), defaultValue: 'szt' },
   notes: { type: DataTypes.TEXT, allowNull: true },

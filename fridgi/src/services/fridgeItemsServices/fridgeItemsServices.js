@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getProductDatabase, generateId } from "./productServices/productsServices";
+import { getProductDatabase, generateId } from "../productServices/productsServices";
 
 const FRIDGE_KEY = '@fridge';
 
@@ -16,8 +16,11 @@ export const getFridgeItems = async () => {
 
     return fridgeItems
       .map(item => {
-        const product = productsDb.find(p => p.id === item.productId);
-        if (!product) return null;
+        let product = productsDb.find(p => p.remoteId === item.productId);
+        if(!product) {
+          product = productsDb.find(p => p.id === item.productId);
+          if (!product) return null;
+        }
 
         return {
           ...item,
@@ -31,6 +34,14 @@ export const getFridgeItems = async () => {
   }
 };
 
+export const getFridgeItemsWithoutLocalId = async () => {
+  const items = await getFridgeItemsRaw();
+  return items.map(item => {
+    const copy = { ...item };
+    delete copy.fridgeId;
+    return copy;
+  });
+};
 
 export const getProductsFromFridge = async () => {
   return await getFridgeItems();
@@ -130,7 +141,3 @@ export const removeFromFridge = async (fridgeId) => {
   }
 };
 
-
-
-// Alias dla spójności
-export const deleteFromFridge = removeFromFridge;

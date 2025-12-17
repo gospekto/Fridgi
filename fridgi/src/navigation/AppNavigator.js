@@ -1,11 +1,9 @@
-// navigation/AppNavigator.js
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useAuth } from '../context/AuthContext';
 
-// Screens
 import DashboardScreen from '../screens/DashboardScreen';
 import BarcodeScanner from '../components/BarcodeScanner';
 import ProductAdd from '../screens/ProductAdd';

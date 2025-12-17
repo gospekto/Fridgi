@@ -5,7 +5,7 @@ import { ActivityIndicator, Text, Button, SegmentedButtons, IconButton } from 'r
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import CameraScanner from './CameraScanner';
 
-import { getProductsInFridgeByBarcode } from '../services/fridgeItemsServices';
+import { getProductsInFridgeByBarcode } from '../services/fridgeItemsServices/fridgeItemsServices';
 
 export default function BarcodeScanner() {
   const [isLoading, setIsLoading] = useState(false);

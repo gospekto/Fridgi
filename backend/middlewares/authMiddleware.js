@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 
 module.exports = function (req, res, next) {
   const header = req.headers['authorization'];
-
   if (!header) return res.status(401).json({ message: "Brak tokenu" });
 
   const token = header.split(" ")[1];

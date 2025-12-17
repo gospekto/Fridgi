@@ -4,6 +4,7 @@ const productsController = require('../controllers/productsController');
 // const upload = require('../middlewares/uploadMiddleware');
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const fridgeItemsController = require('../controllers/fridgeItemsController');
 
 
 router.post('/auth/register', authController.register);
@@ -14,5 +15,16 @@ router.post('/auth/refresh', authController.refresh);
 // router.get('/profile', authMiddleware, (req, res) => {
 //   res.json({ message: "Dane chronione", user: req.user });
 // });
+
+
+router.get('/products', authMiddleware, productsController.getProducts);
+router.post('/products', authMiddleware, productsController.createProduct);
+router.put('/products/:id', authMiddleware, productsController.updateProduct);
+router.delete('/products/:id', authMiddleware, productsController.deleteProduct);
+
+router.get("/fridge-items", authMiddleware, fridgeItemsController.getFridgeItems);
+router.post("/fridge-items", authMiddleware, fridgeItemsController.createFridgeItem);
+router.put("/fridge-items/:id", authMiddleware, fridgeItemsController.updateFridgeItem);
+router.delete("/fridge-items/:id", authMiddleware, fridgeItemsController.deleteFridgeItem);
 
 module.exports = router;

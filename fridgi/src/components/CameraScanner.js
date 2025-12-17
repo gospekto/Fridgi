@@ -15,7 +15,6 @@ const CameraScanner = ({ onBarcodeScanned, isActive }) => {
   }, []);
 
   useEffect(() => {
-    // Reset camera when component becomes active
     if (isActive && cameraRef) {
       cameraRef.resumePreview();
     }

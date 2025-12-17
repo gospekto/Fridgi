@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import ProductReviewForm from '../components/ProductReviewForm';
 
 import { addToShoppingList } from '../services/shoppingListServices';
-import { addToFridge, removeFromFridge } from '../services/fridgeItemsServices';
+import { addToFridge, removeFromFridge } from '../services/fridgeItemsServices/fridgeItemsServices';
 import { hasProductReview, addProductReview } from '../services/productReviewsServices';
 
 const ProductSelection = () => {
@@ -45,7 +45,6 @@ const ProductSelection = () => {
       await removeFromFridge(product.fridgeId);
       Alert.alert('Sukces', 'Produkt został usunięty z lodówki');
 
-      // alert z opcją dodania do zakupów
       Alert.alert(
         'Dodaj do zakupów',
         'Czy chcesz dodać ten produkt do listy zakupów?',
@@ -54,7 +53,6 @@ const ProductSelection = () => {
             text: 'Nie',
             style: 'cancel',
             onPress: async () => {
-              // po odmowie, sprawdzamy opinię
               const alreadyReviewed = await hasProductReview(product.id);
               if (!alreadyReviewed) {
                 setReviewProduct(product);

@@ -19,7 +19,8 @@ import {
   deleteProductFromDatabase,
   updateProductInDatabase,
 } from '../services/productServices/productsServices';
-import { addToFridge } from '../services/fridgeItemsServices';
+import { addToFridge } from '../services/fridgeItemsServices/fridgeItemsServices';
+import { syncProducts } from '../services/productServices/productSyncService';
 
 const ProductDatabaseScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
@@ -136,6 +137,10 @@ const ProductDatabaseScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+          <IconButton
+            icon="fridge-outline"
+            onPress={() => syncProducts()}
+          />
       <Searchbar
         placeholder="Szukaj produktów..."
         value={searchQuery}

@@ -16,10 +16,10 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import {
   getFridgeItems,
-  deleteFromFridge,
+  removeFromFridge,
   updateInFridge,
   getFridgeItem
-} from '../services/fridgeItemsServices';
+} from '../services/fridgeItemsServices/fridgeItemsServices';
 import { addToShoppingList } from '../services/shoppingListServices';
 
 const FridgeScreen = ({ navigation }) => {
@@ -112,7 +112,7 @@ const FridgeScreen = ({ navigation }) => {
           text: 'Usuń',
           onPress: async () => {
             try {
-              await deleteFromFridge(fridgeId);
+              await removeFromFridge(fridgeId);
               await loadFridgeItems();
               showSnackbar('Produkt usunięty z lodówki');
 

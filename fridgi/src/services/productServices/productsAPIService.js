@@ -6,19 +6,13 @@ export const fetchProducts = async () => {
 };
 
 export const createProduct = async (product) => {
-  const res = await axios.post("/products", {
-    name: product.name,
-    barcode: product.barcode,
-  });
+  const res = await axios.post("/products", product);
 
   return res.data;
 };
 
 export const updateProduct = async (product) => {
-  await axios.put(`/products/${product.id}`, {
-    name: product.name,
-    barcode: product.barcode,
-  });
+  await axios.put(`/products/${product.remoteId}`, product);
 };
 
 export const deleteProduct = async (id) => {

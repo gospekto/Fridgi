@@ -1,24 +1,54 @@
 const productsService = require('../services/productsService');
-const upload = require('../middlewares/uploadMiddleware');
 
-const createProduct = async (req, res, next) => {
+const getProducts = async (req, res) => {
   try {
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
-    
-    const productData = {
-      ...req.body,
-      imagePath,
-      userId: '1'
-    //   userId: req.user.id // jeśli masz autentykację
-    };
+    const products = await productsService.getProducts(req.user.id);
+    res.json(products);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: err.message });
+  }
+};
 
-    const product = await productsService.createProduct(productData);
+const createProduct = async (req, res) => {
+  try {
+    const product = await productsService.createProduct(
+      req.body
+    );
     res.status(201).json(product);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    console.log(err.message);
+    res.status(400).json({ message: err.message });
+  }
+};
+
+const updateProduct = async (req, res) => {
+  try {
+    await productsService.updateProduct(
+      req.params.id,
+      req.body
+    );
+    res.sendStatus(204);
+  } catch (err) {
+    console.log(err.message);
+    res.status(404).json({ message: err.message });
+  }
+};
+
+const deleteProduct = async (req, res) => {
+  try {
+    await productsService.deleteProduct(
+      req.params.id
+    );
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(404).json({ message: err.message });
   }
 };
 
 module.exports = {
-  createProduct
+  getProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct
 };
