@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { generateId } from './productServices/productsServices';
+import { generateId } from '../productServices/productsServices';
 
 const PRODUCT_REVIEWS_KEY = '@productReviews';
 
@@ -37,11 +37,13 @@ export const addProductReview = async ({ productId, rating, comment }) => {
   const reviews = await getAllReviews();
 
   const newReview = {
-    id: generateId(),
+    rewiewId: generateId(),
+    remoteId: null,
     productId,
     rating,
     comment,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    syncStatus: 'created',
   };
 
   const updated = [...reviews, newReview];
@@ -54,19 +56,30 @@ export const updateProductReview = async ({ reviewId, rating, comment }) => {
   const reviews = await getAllReviews();
 
   const updatedReviews = reviews.map(r =>
-    r.id === reviewId
-      ? { ...r, rating, comment, updatedAt: new Date().toISOString() }
+    r.rewiewId === reviewId
+      ? { 
+        ...r, 
+        rating, 
+        comment, 
+        updatedAt: new Date().toISOString(),
+        syncStatus: r.syncStatus === 'created' ? 'created' : 'updated', }
       : r
   );
 
   await AsyncStorage.setItem(PRODUCT_REVIEWS_KEY, JSON.stringify(updatedReviews));
 
-  return updatedReviews.find(r => r.id === reviewId);
+  return updatedReviews.find(r => r.rewiewId === reviewId);
 };
 
 export const deleteProductReview = async (reviewId) => {
   const reviews = await getAllReviews();
-  const updated = reviews.filter(r => r.id !== reviewId);
-
+  
+  const updated = reviews.map(item =>
+    item.reviewId === reviewId
+    ? { ...item, syncStatus: 'deleted' }
+    : item
+  );
+  
   await AsyncStorage.setItem(PRODUCT_REVIEWS_KEY, JSON.stringify(updated));
+  console.log("usuwanie");
 };

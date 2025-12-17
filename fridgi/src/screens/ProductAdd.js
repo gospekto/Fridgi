@@ -224,7 +224,6 @@ export default function ProductAdd({ navigation, route }) {
       };
 
       const savedProduct = await addToProductDatabase(productToSave);
-      
       await addToFridge(savedProduct.id);
       
       navigation.goBack();

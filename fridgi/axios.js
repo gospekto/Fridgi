@@ -9,19 +9,13 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    try {
-      const saved = await AsyncStorage.getItem("authData");
-
-      if (saved) {
-        const { accessToken } = JSON.parse(saved);
-        if (accessToken) {
-          config.headers.Authorization = `Bearer ${accessToken}`;
-        }
+    const saved = await AsyncStorage.getItem("authData");
+    if (saved) {
+      const { accessToken } = JSON.parse(saved);
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
       }
-    } catch (err) {
-      console.error("Błąd pobierania tokenu z AsyncStorage", err);
     }
-
     return config;
   },
   (error) => Promise.reject(error)
@@ -35,13 +29,11 @@ const processQueue = (error, token = null) => {
     if (error) prom.reject(error);
     else prom.resolve(token);
   });
-
   failedQueue = [];
 };
 
 const doRefreshToken = async () => {
   const saved = await AsyncStorage.getItem("authData");
-
   if (!saved) throw new Error("Brak danych auth");
 
   const { refreshToken, user } = JSON.parse(saved);
@@ -50,15 +42,14 @@ const doRefreshToken = async () => {
     refreshToken,
   });
 
-  const newTokens = {
+  const newAuthData = {
     accessToken: res.data.accessToken,
     refreshToken: res.data.refreshToken,
     user,
   };
 
-  await AsyncStorage.setItem("authData", JSON.stringify(newTokens));
-
-  return newTokens;
+  await AsyncStorage.setItem("authData", JSON.stringify(newAuthData));
+  return newAuthData;
 };
 
 api.interceptors.response.use(
@@ -67,9 +58,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status !== 401) {
+    if (originalRequest?.url?.includes("/auth/refresh")) {
+      await AsyncStorage.removeItem("authData");
       return Promise.reject(error);
     }
+
+    if (![403, 401].includes(error.response?.status) || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
 
     if (isRefreshing) {
       return new Promise((resolve, reject) => {

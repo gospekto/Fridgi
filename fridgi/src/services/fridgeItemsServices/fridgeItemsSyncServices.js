@@ -2,14 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getFridgeItemsRaw
 } from "./fridgeItemsServices";
-import { generateId } from "./productServices/productsServices";
+import { generateId } from "../productServices/productsServices";
 import * as api from "./fridgeItemsAPIServices";
 
 const FRIDGE_KEY = "@fridge";
 
-/**
- * Zwraca elementy lodówki bez lokalnych ID (analogicznie do getProductsWithoutId)
- */
 const getFridgeItemsWithoutLocalId = async () => {
   const items = await getFridgeItemsRaw();
   return items.map(item => {
@@ -20,7 +17,7 @@ const getFridgeItemsWithoutLocalId = async () => {
 };
 
 export const syncFridgeItems = async () => {
-  const fridgeItems = await getFridgeItemsRaw();
+  const fridgeItems = await getFridgeItemsWithoutLocalId();
   const result = [];
 
   for (const item of fridgeItems) {

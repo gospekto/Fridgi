@@ -20,7 +20,8 @@ import {
   updateInFridge,
   getFridgeItem
 } from '../services/fridgeItemsServices/fridgeItemsServices';
-import { addToShoppingList } from '../services/shoppingListServices';
+import { addToShoppingList } from '../services/shoppingListServices/shoppingListServices';
+import { syncFridgeItems } from '../services/fridgeItemsServices/fridgeItemsSyncServices';
 
 const FridgeScreen = ({ navigation }) => {
   const [fridgeItems, setFridgeItems] = useState([]);
@@ -49,6 +50,7 @@ const FridgeScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       const items = await getFridgeItems();
+      console.log(items);
       setFridgeItems(items);
       processItems(items);
     } catch {
@@ -126,12 +128,7 @@ const FridgeScreen = ({ navigation }) => {
                       text: 'Tak',
                       onPress: async () => {
                         try {
-                          await addToShoppingList({
-                            name: itemToAdd.product.name,
-                            quantity: itemToAdd.product.quantity || 1,
-                            unit: itemToAdd.product.unit,
-                            category: itemToAdd.product.category
-                          });
+                          await addToShoppingList(itemToAdd.productId);
                           showSnackbar('Dodano do listy zakupów');
                         } catch {
                           showSnackbar('Błąd podczas dodawania do listy zakupów');
@@ -198,6 +195,10 @@ const FridgeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <IconButton
+        icon="fridge-outline"
+        onPress={() => syncFridgeItems()}
+      />
       <Searchbar
         placeholder="Szukaj w lodówce..."
         onChangeText={setSearchQuery}

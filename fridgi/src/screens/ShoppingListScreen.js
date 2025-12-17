@@ -20,7 +20,8 @@ import {
   getShoppingListItems,
   updateShoppingItem,
   removeFromShoppingList,
-} from '../services/shoppingListServices';
+} from '../services/shoppingListServices/shoppingListServices';
+import { syncShoppingList } from '../services/shoppingListServices/shoppingListSyncServices';
 
 const ShoppingListScreen = () => {
   const [items, setItems] = useState([]);
@@ -36,6 +37,7 @@ const ShoppingListScreen = () => {
   const loadItems = async () => {
     try {
       const list = await getShoppingListItems();
+      console.log(list);
       setItems(list);
     } catch {
       showSnackbar('Błąd ładowania listy zakupów');
@@ -114,6 +116,10 @@ const ShoppingListScreen = () => {
 
   return (
     <View style={styles.container}>
+      <IconButton
+        icon="fridge-outline"
+        onPress={() => syncShoppingList()}
+      />
       {items.length === 0 ? (
         <Text style={styles.emptyText}>
           Lista zakupów jest pusta

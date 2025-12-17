@@ -8,8 +8,7 @@ const getProducts = async () => {
 
 const createProduct = async (data) => {
   return Product.create({
-    ...data,
-    userId
+    ...data
   });
 };
 

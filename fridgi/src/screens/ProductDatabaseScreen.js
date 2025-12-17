@@ -45,6 +45,7 @@ const ProductDatabaseScreen = ({ navigation }) => {
     try {
       setIsLoading(true);
       const list = await getProductDatabase();
+      console.log(list);
       setProducts(list);
       setFilteredProducts(list);
     } catch {

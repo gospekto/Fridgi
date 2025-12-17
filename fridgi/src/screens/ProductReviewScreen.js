@@ -12,7 +12,7 @@ import {
   deleteProductReview,
   updateProductReview,
   addProductReview,
-} from '../services/productReviewsServices';
+} from '../services/productReviewsServices/productReviewsServices';
 import ProductReviewForm from '../components/ProductReviewForm';
 
 const ProductReviewScreen = ({ route }) => {
@@ -26,7 +26,9 @@ const ProductReviewScreen = ({ route }) => {
   useEffect(() => {
     const loadReview = async () => {
       try {
-        const r = await getReviewByProductId(product.id);
+        const r = await getReviewByProductId(product.remoteId);
+        console.log(product);
+        console.log(r);
         setReview(r);
       } finally {
         setLoading(false);
@@ -46,7 +48,7 @@ const ProductReviewScreen = ({ route }) => {
           text: 'Usuń',
           style: 'destructive',
           onPress: async () => {
-            await deleteProductReview(review.id);
+            await deleteProductReview(review.rewiewId);
             setReview(null);
           },
         },
@@ -57,7 +59,7 @@ const ProductReviewScreen = ({ route }) => {
   const handleSubmit = async ({ rating, comment }) => {
     if (mode === 'add') {
       const newReview = await addProductReview({
-        productId: product.id,
+        productId: product.remoteId,
         rating,
         comment,
       });
@@ -66,7 +68,7 @@ const ProductReviewScreen = ({ route }) => {
 
     if (mode === 'edit') {
       const updated = await updateProductReview({
-        reviewId: review.id,
+        reviewId: review.rewiewId,
         rating,
         comment,
       });
@@ -155,7 +157,6 @@ const ProductReviewScreen = ({ route }) => {
         </Card>
       </ScrollView>
 
-      {/* MODAL – IDENTYCZNIE JAK W BarcodeScanner */}
       <Modal visible={showReviewForm} animationType="slide">
         <ProductReviewForm
           onCancel={() => {

@@ -5,9 +5,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import ProductReviewForm from '../components/ProductReviewForm';
 
-import { addToShoppingList } from '../services/shoppingListServices';
+import { addToShoppingList } from '../services/shoppingListServices/shoppingListServices';
 import { addToFridge, removeFromFridge } from '../services/fridgeItemsServices/fridgeItemsServices';
-import { hasProductReview, addProductReview } from '../services/productReviewsServices';
+import { hasProductReview, addProductReview } from '../services/productReviewsServices/productReviewsServices';
 
 const ProductSelection = () => {
   const navigation = useNavigation();
@@ -36,7 +36,7 @@ const ProductSelection = () => {
 
     try {
       if (actionType === 'add') {
-        await addToFridge(product.id);
+        await addToFridge(product.remoteId ? product.remoteId : product.id);
         Alert.alert('Sukces', 'Produkt został dodany do lodówki');
         navigation.goBack();
         return;
@@ -67,7 +67,7 @@ const ProductSelection = () => {
             text: 'Tak',
             onPress: async () => {
               try {
-                await addToShoppingList(product.product.id, product.quantity || 1);
+                await addToShoppingList(product.productId, product.quantity || 1);
                 Alert.alert('Sukces', 'Dodano do listy zakupów');
 
                 const alreadyReviewed = await hasProductReview(product.product.id);

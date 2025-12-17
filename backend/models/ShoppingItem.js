@@ -6,7 +6,7 @@ const User = require('./User');
 const ShoppingItem = sequelize.define('ShoppingItem', {
   id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
   user_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-  name: { type: DataTypes.STRING(255), allowNull: false },
+  name: { type: DataTypes.STRING(255), allowNull: true },
   quantity: { type: DataTypes.DECIMAL(10,2), defaultValue: 1 },
   checked: { type: DataTypes.BOOLEAN, defaultValue: false },
   addedDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },

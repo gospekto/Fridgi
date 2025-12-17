@@ -66,7 +66,6 @@ module.exports = {
   refresh: async (req, res) => {
     try {
       const { refreshToken } = req.body;
-
       if (!refreshToken)
         return res.status(401).json({ message: "Brak refreshToken" });
 

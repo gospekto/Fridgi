@@ -2,7 +2,7 @@ const productsService = require('../services/productsService');
 
 const getProducts = async (req, res) => {
   try {
-    const products = await productsService.getProducts(req.user.id);
+    const products = await productsService.getProducts();
     res.json(products);
   } catch (err) {
     console.log(err.message);

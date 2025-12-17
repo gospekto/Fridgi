@@ -4,7 +4,7 @@ const Product = require('./Product');
 const User = require('./User');
 
 const FridgeItem = sequelize.define('FridgeItem', {
-  id: { type: DataTypes.STRING(50), primaryKey: true },
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
   user_id: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
   quantity: { type: DataTypes.DECIMAL(10,2), defaultValue: 1 },
   unit: { type: DataTypes.STRING(50), defaultValue: 'szt' },

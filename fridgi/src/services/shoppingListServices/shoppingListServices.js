@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getProductDatabase, generateId } from "./productServices/productsServices";
+import { getProductDatabase, generateId } from "../productServices/productsServices";
 
 const SHOPPING_LIST_KEY = '@shoppingList';
 
@@ -9,11 +9,13 @@ export const getShoppingListItems = async () => {
   try {
     const list = await getShoppingList();
     const productsDb = await getProductDatabase();
-
     return list
       .map(item => {
-        const product = productsDb.find(p => p.id === item.productId);
-        if (!product) return null;
+        let product = productsDb.find(p => p.remoteId === item.productId);
+        if(!product) {
+          product = productsDb.find(p => p.id === item.productId);
+          if (!product) return null;
+        }
 
         return {
           ...item,
@@ -52,6 +54,7 @@ export const addToShoppingList = async (productId, quantity = 1) => {
         ...existing,
         quantity: (existing.quantity || 1) + quantity,
         lastUpdated: new Date().toISOString(),
+        syncStatus: 'updated',
       };
 
       const newList = [...list];
@@ -72,6 +75,7 @@ export const addToShoppingList = async (productId, quantity = 1) => {
       addedDate: new Date().toISOString(),
       checked: false,
       lastUpdated: new Date().toISOString(),
+      syncStatus: 'created',
     };
 
     const updatedList = [...list, itemWithId];
@@ -97,7 +101,8 @@ export const updateShoppingItem = async (shoppingId, updates) => {
     const updatedItem = {
       ...list[index],
       ...updates,
-      shoppingId
+      shoppingId,
+      syncStatus: list[index].syncStatus === 'created' ? 'created' : 'updated',
     };
 
     const newList = [...list];
@@ -111,14 +116,59 @@ export const updateShoppingItem = async (shoppingId, updates) => {
   }
 };
 
-export const removeFromShoppingList = async (shoppingId) => {
+export const replaceProductIdInShoppingList = async (
+  oldProductID,
+  newProductID
+) => {
   try {
-    const list = await getShoppingList();
-    const updatedList = list.filter(item => item.shoppingId !== shoppingId);
-    await AsyncStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(updatedList));
+    const shoppingList = await getShoppingList();
+
+    let changed = false;
+
+    const updatedList = shoppingList.map(item => {
+      if (item.productId !== oldProductID) return item;
+
+      changed = true;
+
+      return {
+        ...item,
+        productId: newProductID,
+        lastUpdated: new Date().toISOString(),
+        syncStatus:
+          item.syncStatus === 'created'
+            ? 'created'
+            : 'updated',
+      };
+    });
+
+    if (changed) {
+      await AsyncStorage.setItem(
+        SHOPPING_LIST_KEY,
+        JSON.stringify(updatedList)
+      );
+    }
+
     return updatedList;
   } catch (error) {
-    console.error('Error removing from shopping list:', error);
+    console.error(
+      'Error replacing productId in shopping list:',
+      error
+    );
     throw error;
   }
+};
+
+
+export const removeFromShoppingList = async (shoppingId) => {
+  const list = await getShoppingList();
+
+  const updated = list.map(item =>
+    item.shoppingId === shoppingId
+      ? { ...item, syncStatus: 'deleted' }
+      : item
+  );
+
+  await AsyncStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(updated));
+
+  return updated.filter(i => i.shoppingId !== shoppingId);
 };

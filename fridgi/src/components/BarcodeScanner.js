@@ -34,7 +34,6 @@ export default function BarcodeScanner() {
           });
           return;
         }
-
         navigation.navigate('ProductSelection', { 
           products,
           barcodeData: data,
