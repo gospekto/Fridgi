@@ -9,6 +9,7 @@ import {
 import { Button, Text, Card, ActivityIndicator } from 'react-native-paper';
 import {
   getReviewByProductId,
+  getExistingReviewByProductId,
   deleteProductReview,
   updateProductReview,
   addProductReview,
@@ -26,7 +27,7 @@ const ProductReviewScreen = ({ route }) => {
   useEffect(() => {
     const loadReview = async () => {
       try {
-        const r = await getReviewByProductId(product.remoteId);
+        const r = await getExistingReviewByProductId(product.remoteId);
         console.log(product);
         console.log(r);
         setReview(r);
@@ -48,7 +49,7 @@ const ProductReviewScreen = ({ route }) => {
           text: 'Usuń',
           style: 'destructive',
           onPress: async () => {
-            await deleteProductReview(review.rewiewId);
+            await deleteProductReview(review.reviewId);
             setReview(null);
           },
         },
@@ -68,7 +69,7 @@ const ProductReviewScreen = ({ route }) => {
 
     if (mode === 'edit') {
       const updated = await updateProductReview({
-        reviewId: review.rewiewId,
+        reviewId: review.reviewId,
         rating,
         comment,
       });

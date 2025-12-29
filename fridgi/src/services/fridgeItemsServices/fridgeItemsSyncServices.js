@@ -4,6 +4,7 @@ import {
 } from "./fridgeItemsServices";
 import { generateId } from "../productServices/productsServices";
 import * as api from "./fridgeItemsAPIServices";
+import { syncProducts } from "../productServices/productSyncService";
 
 const FRIDGE_KEY = "@fridge";
 
@@ -17,6 +18,7 @@ const getFridgeItemsWithoutLocalId = async () => {
 };
 
 export const syncFridgeItems = async () => {
+  syncProducts();
   const fridgeItems = await getFridgeItemsWithoutLocalId();
   const result = [];
 

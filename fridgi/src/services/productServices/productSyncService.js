@@ -8,7 +8,6 @@ const PRODUCT_DB_KEY = "@productDatabase";
 
 export const syncProducts = async () => {
   const products = await getProductDatabase();
-  console.log("syncingProducts");
   const result = [];
   for (const product of products) {
     const tmpid = product.id
@@ -17,7 +16,6 @@ export const syncProducts = async () => {
         if (product.syncStatus === "created") {
           delete product.id;
           const res = await api.createProduct(product);
-          console.log(tmpid);
           result.push({
             ...product,
             id: tmpid,

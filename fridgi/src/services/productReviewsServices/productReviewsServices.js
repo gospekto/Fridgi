@@ -27,17 +27,30 @@ export const getReviewByProductId = async (productId) => {
   return productReviews[0];
 };
 
+export const getExistingReviewByProductId = async (productId) => {
+  const reviews = await getAllReviews();
+
+  const productReviews = reviews.filter(
+    (r) => r.productId === productId && r.syncStatus !== 'deleted'
+  );
+
+  if (productReviews.length === 0) {
+    return null;
+  }
+
+  return productReviews[0];
+};
 
 export const hasProductReview = async (productId) => {
   const reviews = await getAllReviews();
-  return reviews.some(r => r.productId === productId);
+  return reviews.some(r => r.productId === productId && r.syncStatus !== 'deleted');
 };
 
 export const addProductReview = async ({ productId, rating, comment }) => {
   const reviews = await getAllReviews();
 
   const newReview = {
-    rewiewId: generateId(),
+    reviewId: generateId(),
     remoteId: null,
     productId,
     rating,
@@ -56,7 +69,7 @@ export const updateProductReview = async ({ reviewId, rating, comment }) => {
   const reviews = await getAllReviews();
 
   const updatedReviews = reviews.map(r =>
-    r.rewiewId === reviewId
+    r.reviewId === reviewId
       ? { 
         ...r, 
         rating, 
@@ -68,17 +81,19 @@ export const updateProductReview = async ({ reviewId, rating, comment }) => {
 
   await AsyncStorage.setItem(PRODUCT_REVIEWS_KEY, JSON.stringify(updatedReviews));
 
-  return updatedReviews.find(r => r.rewiewId === reviewId);
+  return updatedReviews.find(r => r.reviewId === reviewId);
 };
 
 export const deleteProductReview = async (reviewId) => {
   const reviews = await getAllReviews();
+  console.log(reviewId);
   
   const updated = reviews.map(item =>
     item.reviewId === reviewId
     ? { ...item, syncStatus: 'deleted' }
     : item
   );
+  console.log(updated);
   
   await AsyncStorage.setItem(PRODUCT_REVIEWS_KEY, JSON.stringify(updated));
   console.log("usuwanie");

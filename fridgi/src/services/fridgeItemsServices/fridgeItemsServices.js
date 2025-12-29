@@ -34,6 +34,33 @@ export const getFridgeItems = async () => {
   }
 };
 
+export const getExistingFridgeItems = async () => {
+  try {
+    const fridgeItems = await getFridgeItemsRaw();
+    const productsDb = await getProductDatabase();
+
+    const filteredfridgeItems = fridgeItems.filter(p => p.syncStatus !== 'deleted');
+
+    return filteredfridgeItems
+      .map(item => {
+        let product = productsDb.find(p => p.remoteId === item.productId);
+        if(!product) {
+          product = productsDb.find(p => p.id === item.productId);
+          if (!product) return null;
+        }
+
+        return {
+          ...item,
+          product
+        };
+      })
+      .filter(Boolean);
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
 export const getFridgeItemsWithoutLocalId = async () => {
   const items = await getFridgeItemsRaw();
   return items.map(item => {
@@ -48,7 +75,7 @@ export const getProductsFromFridge = async () => {
 };
 
 export const getProductsInFridgeByBarcode = async (barcode) => {
-  const fridgeItems = await getFridgeItems();
+  const fridgeItems = await getExistingFridgeItems();
   return fridgeItems.filter(
     item => item.product.barcode === barcode
   );

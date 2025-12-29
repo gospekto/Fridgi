@@ -18,6 +18,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import {
   getShoppingListItems,
+  getExistingShoppingListItems,
   updateShoppingItem,
   removeFromShoppingList,
 } from '../services/shoppingListServices/shoppingListServices';
@@ -36,7 +37,7 @@ const ShoppingListScreen = () => {
 
   const loadItems = async () => {
     try {
-      const list = await getShoppingListItems();
+      const list = await getExistingShoppingListItems();
       console.log(list);
       setItems(list);
     } catch {
@@ -63,6 +64,7 @@ const ShoppingListScreen = () => {
 
   const removeItem = async (shoppingId) => {
     try {
+      setItems(items.filter(i => i.shoppingId !== shoppingId));
       await removeFromShoppingList(shoppingId);
       loadItems();
       showSnackbar('Usunięto z listy zakupów');
@@ -136,7 +138,6 @@ const ShoppingListScreen = () => {
         />
       )}
 
-      {/* MODAL – szczegóły produktu */}
       <Modal visible={!!selectedProduct} animationType="slide">
         {selectedProduct && (
           <View style={styles.modalContainer}>

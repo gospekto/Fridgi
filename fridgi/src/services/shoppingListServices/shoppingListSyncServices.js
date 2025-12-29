@@ -5,17 +5,8 @@ import { getShoppingList } from "./shoppingListServices";
 
 const SHOPPING_LIST_KEY = "@shoppingList";
 
-const getShoppingListWithoutLocalId = async () => {
-  const items = await getShoppingList();
-  return items.map(item => {
-    const copy = { ...item };
-    delete copy.shoppingId;
-    return copy;
-  });
-};
-
 export const syncShoppingList = async () => {
-  const items = await getShoppingListWithoutLocalId();
+  const items = await getShoppingList();
   console.log("syncing shoppingList");
   const result = [];
 

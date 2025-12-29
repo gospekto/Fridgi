@@ -29,6 +29,33 @@ export const getShoppingListItems = async () => {
   }
 };
 
+export const getExistingShoppingListItems = async () => {
+  try {
+    const list = await getShoppingList();
+    const productsDb = await getProductDatabase();
+    
+    const filteredShoppingList = list.filter(i => i.syncStatus !== 'deleted');
+    
+    return filteredShoppingList
+      .map(item => {
+        let product = productsDb.find(p => p.remoteId === item.productId);
+        if(!product) {
+          product = productsDb.find(p => p.id === item.productId);
+          if (!product) return null;
+        }
+
+        return {
+          ...item,
+          product
+        };
+      })
+      .filter(Boolean);
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
 
 export const getShoppingList = async () => {
   try {

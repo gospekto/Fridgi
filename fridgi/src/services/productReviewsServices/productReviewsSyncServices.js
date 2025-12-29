@@ -58,7 +58,7 @@ export const pullProductReviewsFromBackend = async () => {
 
   const normalized = remoteReviews.map(r => ({
     ...r,
-    reviewId: generateId(), // ⬅️ lokalne ID
+    reviewId: generateId(),
     syncStatus: "synced",
   }));
 

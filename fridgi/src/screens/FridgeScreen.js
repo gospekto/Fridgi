@@ -16,6 +16,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import {
   getFridgeItems,
+  getExistingFridgeItems,
   removeFromFridge,
   updateInFridge,
   getFridgeItem
@@ -49,7 +50,7 @@ const FridgeScreen = ({ navigation }) => {
   const loadFridgeItems = async () => {
     setIsLoading(true);
     try {
-      const items = await getFridgeItems();
+      const items = await getExistingFridgeItems();
       console.log(items);
       setFridgeItems(items);
       processItems(items);
