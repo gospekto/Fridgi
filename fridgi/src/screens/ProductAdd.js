@@ -21,7 +21,8 @@ import * as FileSystem from 'expo-file-system';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import 'moment/locale/pl';
-import { generateId, addToProductDatabase, addToFridge } from '../services/productsServices';
+import { generateId, addToProductDatabase } from '../services/productServices/productsServices';
+import { addToFridge } from '../services/fridgeItemsServices/fridgeItemsServices';
 
 moment.locale('pl');
 
@@ -29,13 +30,11 @@ export default function ProductAdd({ navigation, route }) {
   const theme = useTheme();
   const { barcodeData, barcodeType } = route.params || {};
   
-  // Kategorie produktów
   const categories = [
     'Nabiał', 'Pieczywo', 'Mięso', 'Warzywa', 'Owoce', 
     'Napoje', 'Słodycze', 'Przekąski', 'Mrożonki', 'Przyprawy'
   ];
 
-  // Jednostki miary
   const units = ['szt', 'kg', 'g', 'l', 'ml', 'opak'];
 
   const [formData, setFormData] = useState({
@@ -120,7 +119,7 @@ export default function ProductAdd({ navigation, route }) {
     const added = moment(addedDate);
     
     const daysDifference = expiry.diff(added, 'days');
-    const withVariance = Math.round(daysDifference * 0.9); // -10% jako bufor bezpieczeństwa
+    const withVariance = Math.round(daysDifference * 0.9);
     
     return withVariance > 0 ? withVariance : 0;
   };
@@ -170,16 +169,16 @@ export default function ProductAdd({ navigation, route }) {
         quality: 0.8,
       });
 
-      console.log('Camera result:', result); // Debugowanie
+      console.log('Camera result:', result);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setFormData(prev => ({
           ...prev,
-          imageUri: result.assets[0].uri // Używamy bezpośrednio URI
+          imageUri: result.assets[0].uri
         }));
       }
     } catch (error) {
-      console.error('Full error:', error); // Pełny błąd do debugowania
+      console.error('Full error:', error);
       showSnackbar(`Błąd podczas robienia zdjęcia: ${error.message}`);
     }
   };
@@ -215,7 +214,7 @@ export default function ProductAdd({ navigation, route }) {
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
         expiryDate: formData.expiryDate?.toISOString(),
-        barcode: formData.barcode, // osobna kolumna
+        barcode: formData.barcode,
         barcodeType: formData.barcodeType,
         storageLocation: formData.storageLocation,
         notes: formData.notes,
@@ -224,15 +223,8 @@ export default function ProductAdd({ navigation, route }) {
         typicalShelfLife: formData.estimatedShelfLife
       };
 
-      // 1. Dodaj do bazy produktów
       const savedProduct = await addToProductDatabase(productToSave);
-      
-      // 2. Dodaj do lodówki z unikalnym fridgeId
-      await addToFridge({
-        ...savedProduct,
-        addedDate: new Date().toISOString(),
-        fridgeId: generateId()
-      });
+      await addToFridge(savedProduct.id);
       
       navigation.goBack();
     } catch (error) {
@@ -363,17 +355,17 @@ export default function ProductAdd({ navigation, route }) {
 
             {/* Ilość i jednostka */}
             <View style={styles.row}>
-              <TextInput
+              {/* <TextInput
                 label="Ilość*"
                 value={formData.quantity}
                 onChangeText={(text) => handleChange('quantity', text)}
                 error={!!errors.quantity}
                 style={[styles.input, styles.quantityInput]}
                 keyboardType="numeric"
-              />
+              /> */}
               
               {/* Jednostka - Menu */}
-              <Menu
+              {/* <Menu
                 visible={unitMenuVisible}
                 onDismiss={() => setUnitMenuVisible(false)}
                 anchor={
@@ -397,7 +389,7 @@ export default function ProductAdd({ navigation, route }) {
                     title={unit}
                   />
                 ))}
-              </Menu>
+              </Menu> */}
             </View>
             {errors.quantity && (
               <HelperText type="error" visible={!!errors.quantity}>

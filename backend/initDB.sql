@@ -2,6 +2,19 @@ CREATE DATABASE IF NOT EXISTS fridgi;
 
 USE fridgi;
 
+CREATE TABLE users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE,
+    password_hash VARCHAR(255),
+    google_connected TINYINT(1) DEFAULT 0,
+    google_id VARCHAR(255) UNIQUE,
+    name VARCHAR(255),
+    avatar_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
 CREATE TABLE IF NOT EXISTS products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -18,7 +31,7 @@ CREATE TABLE IF NOT EXISTS products (
   user_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) -- jeśli masz tabelę users
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Dodaj indeksy dla lepszej wydajności

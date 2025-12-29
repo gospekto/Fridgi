@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Card,
@@ -12,195 +12,195 @@ import {
   Modal,
   TextInput,
   Snackbar,
-  Text
+  Text,
 } from 'react-native-paper';
 import {
   getProductDatabase,
   deleteProductFromDatabase,
   updateProductInDatabase,
-  addToFridge
-} from '../services/productsServices';
+} from '../services/productServices/productsServices';
+import { addToFridge } from '../services/fridgeItemsServices/fridgeItemsServices';
+import { syncProducts } from '../services/productServices/productSyncService';
 
 const ProductDatabaseScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
+
   const [editForm, setEditForm] = useState({
     name: '',
     category: '',
     barcode: '',
-    typicalShelfLife: ''
+    typicalShelfLife: '',
   });
+
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const productList = await getProductDatabase();
-        setProducts(productList);
-        setFilteredProducts(productList);
-      } catch (error) {
-        showSnackbar('Błąd ładowania produktów');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProducts();
+  const loadProducts = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const list = await getProductDatabase();
+      console.log(list);
+      setProducts(list);
+      setFilteredProducts(list);
+    } catch {
+      showSnackbar('Błąd ładowania produktów');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (searchQuery === '') {
-      setFilteredProducts(products);
-    } else {
-      const filtered = products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (p.barcode && p.barcode.includes(searchQuery))
-      );
-      setFilteredProducts(filtered);
-    }
+    loadProducts();
+  }, [loadProducts]);
+
+  useEffect(() => {
+    const q = searchQuery.toLowerCase();
+
+    setFilteredProducts(
+      products.filter(p =>
+        p.name?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
+        p.barcode?.includes(q)
+      )
+    );
   }, [searchQuery, products]);
 
-  const showSnackbar = (message) => {
-    setSnackbarMessage(message);
+  const showSnackbar = (msg) => {
+    setSnackbarMessage(msg);
     setSnackbarVisible(true);
   };
 
-  const handleDelete = async (productId) => {
+  const handleDelete = async (id) => {
     try {
-      await deleteProductFromDatabase(productId);
-      setProducts(prev => prev.filter(p => p.id !== productId));
+      await deleteProductFromDatabase(id);
+      setProducts(prev => prev.filter(p => p.id !== id));
       showSnackbar('Produkt usunięty');
-    } catch (error) {
-      showSnackbar('Błąd podczas usuwania produktu');
+    } catch {
+      showSnackbar('Błąd podczas usuwania');
     }
   };
 
   const openEditModal = (product) => {
     setCurrentProduct(product);
     setEditForm({
-      name: product.name,
-      category: product.category,
-      barcode: product.barcode || '',
-      typicalShelfLife: product.typicalShelfLife?.toString() || ''
+      name: product.name ?? '',
+      category: product.category ?? '',
+      barcode: product.barcode ?? '',
+      typicalShelfLife:
+        product.typicalShelfLife?.toString() ?? '',
     });
     setEditModalVisible(true);
   };
 
   const handleEditSubmit = async () => {
+    if (!currentProduct) return;
+
     try {
-      const updatedProduct = await updateProductInDatabase(currentProduct.id, {
-        ...editForm,
-        typicalShelfLife: parseInt(editForm.typicalShelfLife) || 0
+      await updateProductInDatabase(currentProduct.id, {
+        name: editForm.name.trim(),
+        category: editForm.category.trim(),
+        barcode: editForm.barcode || null,
+        typicalShelfLife: Number(editForm.typicalShelfLife) || null,
       });
 
-      setProducts(prev =>
-        prev.map(p => (p.id === currentProduct.id ? updatedProduct : p))
-      );
-
+      await loadProducts();
       setEditModalVisible(false);
       showSnackbar('Produkt zaktualizowany');
-    } catch (error) {
-      showSnackbar('Błąd podczas aktualizacji produktu');
+    } catch {
+      showSnackbar('Błąd aktualizacji produktu');
     }
   };
 
   const handleAddToFridge = async (product) => {
     try {
-      await addToFridge({
-        ...product,
-        addedDate: new Date().toISOString(),
-        quantity: 1,
-        fridgeId: Date.now().toString()
-      });
+
+      await addToFridge(product.id);
+
       showSnackbar('Dodano do lodówki');
-    } catch (error) {
-      showSnackbar('Błąd podczas dodawania do lodówki');
+    } catch {
+      showSnackbar('Błąd dodawania do lodówki');
     }
   };
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator animating={true} size="large" />
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+          <IconButton
+            icon="fridge-outline"
+            onPress={() => syncProducts()}
+          />
       <Searchbar
         placeholder="Szukaj produktów..."
-        onChangeText={setSearchQuery}
         value={searchQuery}
+        onChangeText={setSearchQuery}
         style={styles.searchBar}
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         {filteredProducts.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Title style={styles.emptyText}>Brak produktów</Title>
+          <View style={styles.empty}>
+            <Title>Brak produktów</Title>
             <Button
               mode="contained"
               onPress={() => navigation.navigate('ProductAdd')}
             >
-              Dodaj pierwszy produkt
+              Dodaj produkt
             </Button>
           </View>
         ) : (
           filteredProducts.map(product => (
-            <Card key={product.id} style={styles.productCard}>
-                {product.imageUri && (
-                    <Card.Cover 
-                    source={{ uri: product.imageUri }} 
-                    style={styles.productImage}
-                    />
-                )}
+            <Card key={product.id} style={styles.card}>
+              {product.imageUri && (
+                <Card.Cover source={{ uri: product.imageUri }} />
+              )}
+
               <Card.Content>
-                <View style={styles.cardHeader}>
-                  <Title style={styles.productName}>{product.name}</Title>
-                  <View style={styles.actions}>
-                    <IconButton
-                      icon="fridge-outline"
-                      size={20}
-                      onPress={() => handleAddToFridge(product)}
-                    />
-                    <IconButton
-                      icon="pencil"
-                      size={20}
-                      onPress={() => openEditModal(product)}
-                    />
-                    <IconButton
-                      icon="delete"
-                      size={20}
-                      onPress={() => handleDelete(product.id)}
-                    />
-                  </View>
+                <View style={styles.header}>
+                  <Title style={{ flex: 1 }}>{product.name}</Title>
+
+                  <IconButton
+                    icon="fridge-outline"
+                    onPress={() => handleAddToFridge(product)}
+                  />
+                  <IconButton
+                    icon="pencil"
+                    onPress={() => openEditModal(product)}
+                  />
+                  <IconButton
+                    icon="delete"
+                    onPress={() => handleDelete(product.id)}
+                  />
                 </View>
 
-                <View style={styles.detailsRow}>
-                  <Paragraph style={styles.detailText}>
-                    <Text style={styles.detailLabel}>Kategoria: </Text>
+                {product.category && (
+                  <Chip style={{ alignSelf: 'flex-start' }}>
                     {product.category}
-                  </Paragraph>
-                  <Chip style={styles.categoryChip}>{product.category}</Chip>
-                </View>
+                  </Chip>
+                )}
 
                 {product.barcode && (
-                  <Paragraph style={styles.detailText}>
-                    <Text style={styles.detailLabel}>Kod kreskowy: </Text>
+                  <Paragraph>
+                    <Text style={styles.label}>Kod: </Text>
                     {product.barcode}
                   </Paragraph>
                 )}
 
-                {product.typicalShelfLife > 0 && (
-                  <Paragraph style={styles.detailText}>
-                    <Text style={styles.detailLabel}>Typowy okres przydatności: </Text>
+                {product.typicalShelfLife && (
+                  <Paragraph>
+                    <Text style={styles.label}>Przydatność: </Text>
                     {product.typicalShelfLife} dni
                   </Paragraph>
                 )}
@@ -217,70 +217,35 @@ const ProductDatabaseScreen = ({ navigation }) => {
       >
         <Card>
           <Card.Content>
-            <Title style={styles.modalTitle}>Edytuj produkt</Title>
-            
-            <TextInput
-              label="Nazwa produktu"
-              value={editForm.name}
-              onChangeText={(text) => setEditForm({...editForm, name: text})}
-              style={styles.input}
-            />
+            <Title>Edytuj produkt</Title>
 
-            <TextInput
-              label="Kategoria"
-              value={editForm.category}
-              onChangeText={(text) => setEditForm({...editForm, category: text})}
-              style={styles.input}
-            />
+            {['name', 'category', 'barcode', 'typicalShelfLife'].map(
+              field => (
+                <TextInput
+                  key={field}
+                  label={field}
+                  value={editForm[field]}
+                  onChangeText={v =>
+                    setEditForm(prev => ({ ...prev, [field]: v }))
+                  }
+                  keyboardType={
+                    field === 'typicalShelfLife' ? 'numeric' : 'default'
+                  }
+                  style={{ marginBottom: 10 }}
+                />
+              )
+            )}
 
-            <TextInput
-              label="Kod kreskowy"
-              value={editForm.barcode}
-              onChangeText={(text) => setEditForm({...editForm, barcode: text})}
-              style={styles.input}
-              keyboardType="numeric"
-            />
-
-            <TextInput
-              label="Typowy okres przydatności (dni)"
-              value={editForm.typicalShelfLife}
-              onChangeText={(text) => setEditForm({...editForm, typicalShelfLife: text})}
-              style={styles.input}
-              keyboardType="numeric"
-            />
-
-            <View style={styles.modalButtons}>
-              <Button
-                mode="outlined"
-                onPress={() => setEditModalVisible(false)}
-                style={styles.modalButton}
-              >
-                Anuluj
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleEditSubmit}
-                style={styles.modalButton}
-              >
-                Zapisz
-              </Button>
-            </View>
+            <Button mode="contained" onPress={handleEditSubmit}>
+              Zapisz
+            </Button>
           </Card.Content>
         </Card>
       </Modal>
 
-      <IconButton
-        icon="plus"
-        size={30}
-        onPress={() => navigation.navigate('ProductAdd')}
-        style={styles.addButton}
-        mode="contained"
-      />
-
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
-        duration={3000}
       >
         {snackbarMessage}
       </Snackbar>
@@ -289,94 +254,17 @@ const ProductDatabaseScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  container: { flex: 1, padding: 10 },
+  loading: { flex: 1, justifyContent: 'center' },
+  searchBar: { marginBottom: 10 },
+  empty: { alignItems: 'center', marginTop: 40 },
+  card: { marginBottom: 15 },
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  searchBar: {
-    marginBottom: 10,
-    borderRadius: 8,
-  },
-  scrollContainer: {
-    paddingBottom: 80,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 18,
-    marginBottom: 20,
-    color: '#666',
-  },
-  productCard: {
-    marginBottom: 15,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  productName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  actions: {
-    flexDirection: 'row',
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  detailLabel: {
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  detailText: {
-    fontSize: 14,
-  },
-  categoryChip: {
-    alignSelf: 'flex-start',
-    marginLeft: 5,
-  },
-  modal: {
-    padding: 20,
-  },
-  modalTitle: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  input: {
-    marginBottom: 10,
-    backgroundColor: 'white',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 15,
-  },
-  modalButton: {
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  addButton: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#6200ee',
-  },
+  label: { fontWeight: 'bold' },
+  modal: { padding: 20 },
 });
 
 export default ProductDatabaseScreen;

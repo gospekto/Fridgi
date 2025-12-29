@@ -3,7 +3,6 @@ import { StyleSheet, View, ScrollView, Dimensions } from 'react-native';
 import { Button, Card, IconButton, Title, useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
-// Komponent pojedynczego kafelka
 const DashboardTile = ({ icon, title, color, onPress }) => {
   return (
     <Card style={styles.tile} onPress={onPress}>
@@ -21,7 +20,6 @@ const DashboardTile = ({ icon, title, color, onPress }) => {
   );
 };
 
-// Główny komponent Dashboard
 const DashboardScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -70,7 +68,6 @@ const DashboardScreen = () => {
   );
 };
 
-// Style
 const screenWidth = Dimensions.get('window').width;
 const tileSize = screenWidth / 2 - 24;
 
