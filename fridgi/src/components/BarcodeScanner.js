@@ -48,7 +48,7 @@ export default function BarcodeScanner() {
       }
 
       const product = products[0];
-
+      console.log("product", product);
       navigation.navigate('ProductReviewScreen', {
         product,
       });
@@ -59,7 +59,7 @@ export default function BarcodeScanner() {
           Alert.alert('Błąd', 'Nie znaleziono produktu o podanym kodzie w lodówce');
           return;
         }
-    
+        console.log(productsInFridge);
         navigation.navigate('ProductSelection', {
           products: productsInFridge,
           barcodeData: data,

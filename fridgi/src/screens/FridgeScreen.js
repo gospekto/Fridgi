@@ -262,7 +262,7 @@ const FridgeScreen = ({ navigation }) => {
               );
             } else {
               return (
-                <Card key={index} style={styles.productCard}>
+                <Card key={item.items[0].product.id} style={styles.productCard}>
                   {item.items[0].product.imageUri && <Card.Cover source={{ uri: item.items[0].product.imageUri }} style={styles.productImage} />}
                   <TouchableOpacity onPress={() => toggleGroup(index)}>
                     <Card.Content>

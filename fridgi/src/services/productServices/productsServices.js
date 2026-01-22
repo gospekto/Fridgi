@@ -18,7 +18,6 @@ export const getProductDatabase = async () => {
 export const getProductsWithoutId = async () => {
   const products = await getProductDatabase();
   return products.map(product => {
-    // const data = product.toJSON();
     delete product.id;
     return product;
   });

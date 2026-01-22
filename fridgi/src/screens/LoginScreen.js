@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { SafeAreaView, View, StyleSheet } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
@@ -8,9 +8,10 @@ const Tab = createMaterialTopTabNavigator();
 
 const LoginScreen = () => {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Tab.Navigator
         screenOptions={{
+          tabBarStyle: { paddingTop: 24, },
           tabBarLabelStyle: { fontSize: 14, fontWeight: 'bold' },
           tabBarIndicatorStyle: { backgroundColor: '#6200ee' },
         }}
@@ -18,7 +19,7 @@ const LoginScreen = () => {
         <Tab.Screen name="Login" component={LoginForm} options={{ title: 'Logowanie' }} />
         <Tab.Screen name="Register" component={RegisterForm} options={{ title: 'Rejestracja' }} />
       </Tab.Navigator>
-    </View>
+    </SafeAreaView>
   );
 };
 

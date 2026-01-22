@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  getFridgeItems,
   getFridgeItemsRaw
 } from "./fridgeItemsServices";
 import { generateId } from "../productServices/productsServices";
@@ -19,7 +20,7 @@ const getFridgeItemsWithoutLocalId = async () => {
 
 export const syncFridgeItems = async () => {
   syncProducts();
-  const fridgeItems = await getFridgeItemsWithoutLocalId();
+  const fridgeItems = await getFridgeItems();
   const result = [];
 
   for (const item of fridgeItems) {

@@ -29,6 +29,7 @@ export const getReviewByProductId = async (productId) => {
 
 export const getExistingReviewByProductId = async (productId) => {
   const reviews = await getAllReviews();
+  console.log(reviews);
 
   const productReviews = reviews.filter(
     (r) => r.productId === productId && r.syncStatus !== 'deleted'

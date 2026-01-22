@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Modal, FlatList, TouchableOpacity, Image, Alert, KeyboardAvoidingView, Platform} from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -18,6 +18,11 @@ const ProductSelection = () => {
   const { products, barcodeData, actionType } = route.params;
   const [shouldGoBack, setShouldGoBack] = useState(false);
 
+  useEffect(() => {
+    if (actionType === 'add' && productsWithOptions.length > 0) {
+      handleSelectProduct(productsWithOptions[0]);
+    }
+  }, []);
 
   const productsWithOptions = [
     ...products,

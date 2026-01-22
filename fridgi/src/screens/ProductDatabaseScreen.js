@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Card,
-  Title,
-  Paragraph,
   Button,
   IconButton,
   Searchbar,
@@ -152,7 +150,7 @@ const ProductDatabaseScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         {filteredProducts.length === 0 ? (
           <View style={styles.empty}>
-            <Title>Brak produktów</Title>
+            <Text variant="titleLarge" >Brak produktów</Text>
             <Button
               mode="contained"
               onPress={() => navigation.navigate('ProductAdd')}
@@ -169,7 +167,7 @@ const ProductDatabaseScreen = ({ navigation }) => {
 
               <Card.Content>
                 <View style={styles.header}>
-                  <Title style={{ flex: 1 }}>{product.name}</Title>
+                  <Text variant="titleLarge" >{product.name}</Text>
 
                   <IconButton
                     icon="fridge-outline"
@@ -192,17 +190,15 @@ const ProductDatabaseScreen = ({ navigation }) => {
                 )}
 
                 {product.barcode && (
-                  <Paragraph>
-                    <Text style={styles.label}>Kod: </Text>
-                    {product.barcode}
-                  </Paragraph>
+                  <Text variant="bodyMedium" >
+                    Kod: {product.barcode}
+                  </Text>
                 )}
 
                 {product.typicalShelfLife && (
-                  <Paragraph>
-                    <Text style={styles.label}>Przydatność: </Text>
-                    {product.typicalShelfLife} dni
-                  </Paragraph>
+                  <Text variant="bodyMedium" >
+                    Przydatność: {product.typicalShelfLife} dni
+                  </Text>
                 )}
               </Card.Content>
             </Card>
@@ -217,7 +213,7 @@ const ProductDatabaseScreen = ({ navigation }) => {
       >
         <Card>
           <Card.Content>
-            <Title>Edytuj produkt</Title>
+            <Text variant="titleLarge" >Edytuj produkt</Text>
 
             {['name', 'category', 'barcode', 'typicalShelfLife'].map(
               field => (
@@ -247,7 +243,7 @@ const ProductDatabaseScreen = ({ navigation }) => {
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
       >
-        {snackbarMessage}
+        <Text>{snackbarMessage}</Text>
       </Snackbar>
     </View>
   );
