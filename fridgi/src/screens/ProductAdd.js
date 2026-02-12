@@ -262,7 +262,6 @@ export default function ProductAdd({ navigation, route }) {
           <Card.Content>
             <Title style={styles.title}>Dane produktu</Title>
             
-            {/* Zdjęcie produktu */}
             <View style={styles.imageSection}>
               {formData.imageUri ? (
                 <View style={styles.imageContainer}>
@@ -306,7 +305,6 @@ export default function ProductAdd({ navigation, route }) {
               </View>
             </View>
 
-            {/* Podstawowe informacje */}
             <TextInput
               label="Nazwa produktu*"
               value={formData.name}
@@ -320,7 +318,6 @@ export default function ProductAdd({ navigation, route }) {
               </HelperText>
             )}
 
-            {/* Kategoria - Menu */}
             <Menu
               visible={categoryMenuVisible}
               onDismiss={() => setCategoryMenuVisible(false)}
@@ -353,43 +350,7 @@ export default function ProductAdd({ navigation, route }) {
               </HelperText>
             )}
 
-            {/* Ilość i jednostka */}
             <View style={styles.row}>
-              {/* <TextInput
-                label="Ilość*"
-                value={formData.quantity}
-                onChangeText={(text) => handleChange('quantity', text)}
-                error={!!errors.quantity}
-                style={[styles.input, styles.quantityInput]}
-                keyboardType="numeric"
-              /> */}
-              
-              {/* Jednostka - Menu */}
-              {/* <Menu
-                visible={unitMenuVisible}
-                onDismiss={() => setUnitMenuVisible(false)}
-                anchor={
-                  <TextInput
-                    label="Jednostka"
-                    value={formData.unit}
-                    style={[styles.input, styles.unitInput]}
-                    right={<TextInput.Icon name="chevron-down" onPress={() => setUnitMenuVisible(true)} />}
-                    onFocus={() => setUnitMenuVisible(true)}
-                    showSoftInputOnFocus={false}
-                  />
-                }
-              >
-                {units.map((unit) => (
-                  <Menu.Item
-                    key={unit}
-                    onPress={() => {
-                      handleChange('unit', unit);
-                      setUnitMenuVisible(false);
-                    }}
-                    title={unit}
-                  />
-                ))}
-              </Menu> */}
             </View>
             {errors.quantity && (
               <HelperText type="error" visible={!!errors.quantity}>
@@ -397,7 +358,6 @@ export default function ProductAdd({ navigation, route }) {
               </HelperText>
             )}
 
-            {/* Data ważności */}
             <TextInput
               label="Data ważności (opcjonalnie)"
               value={formatDate(formData.expiryDate)}
@@ -416,7 +376,6 @@ export default function ProductAdd({ navigation, route }) {
               />
             )}
 
-            {/* Przewidywany okres trwałości */}
             {formData.estimatedShelfLife !== null && (
               <View style={styles.shelfLifeContainer}>
                 <Text style={styles.shelfLifeText}>
@@ -425,7 +384,6 @@ export default function ProductAdd({ navigation, route }) {
               </View>
             )}
 
-            {/* Miejsce przechowywania */}
             <Menu
               visible={storageMenuVisible}
               onDismiss={() => setStorageMenuVisible(false)}
@@ -452,7 +410,6 @@ export default function ProductAdd({ navigation, route }) {
               ))}
             </Menu>
 
-            {/* Notatki */}
             <TextInput
               label="Notatki (opcjonalnie)"
               value={formData.notes}
@@ -462,7 +419,6 @@ export default function ProductAdd({ navigation, route }) {
               numberOfLines={3}
             />
 
-            {/* Kod kreskowy */}
             <TextInput
               label="Kod kreskowy"
               value={formData.barcode}
@@ -479,7 +435,6 @@ export default function ProductAdd({ navigation, route }) {
           </Card.Content>
         </Card>
 
-        {/* Przyciski akcji */}
         <View style={styles.buttonsContainer}>
           <Button 
             mode="contained" 
@@ -502,7 +457,6 @@ export default function ProductAdd({ navigation, route }) {
         </View>
       </ScrollView>
 
-      {/* Snackbar z komunikatem */}
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
@@ -512,7 +466,6 @@ export default function ProductAdd({ navigation, route }) {
         {snackbarMessage}
       </Snackbar>
 
-      {/* Wskaźnik ładowania */}
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator animating={true} size="large" />

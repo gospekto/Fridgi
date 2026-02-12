@@ -60,7 +60,7 @@ const ProductReviewScreen = ({ route }) => {
   const handleSubmit = async ({ rating, comment }) => {
     if (mode === 'add') {
       const newReview = await addProductReview({
-        productId: product.remoteId,
+        productId: product.id,
         rating,
         comment,
       });
